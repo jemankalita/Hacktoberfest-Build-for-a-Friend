@@ -28,7 +28,7 @@ def test_transcribe_streams_tokens_then_final_text(client, monkeypatch):
     response = client.post("/api/transcribe", files={"image": ("p.jpg", b"img", "image/jpeg")})
     events = _events(response)
     assert [e["token"] for e in events if "token" in e] == ["The ", "Perennial"]
-    assert events[-1] == {"done": True, "text": "The Perennial", "auto_fixes": []}
+    assert events[-1] == {"done": True, "text": "The Perennial", "auto_fixes": [], "expanded": []}
 
 
 def test_transcribe_applies_confirmed_fixes_and_reports_them(client, monkeypatch):
@@ -39,6 +39,20 @@ def test_transcribe_applies_confirmed_fixes_and_reports_them(client, monkeypatch
     final = _events(response)[-1]
     assert final["text"] == "Mr Possum"
     assert final["auto_fixes"] == [["Possam", "Possum"]]
+
+
+def test_transcribe_expands_his_short_forms(client, monkeypatch):
+    client.post("/api/abbreviations", json={"short": "gitq", "expansion": "given in the question"})
+    monkeypatch.setattr(ocr, "transcribe_stream", lambda image, hints: iter(["as gitq"]))
+    response = client.post("/api/transcribe", files={"image": ("p.jpg", b"img", "image/jpeg")})
+    final = _events(response)[-1]
+    assert final["text"] == "as given in the question"
+    assert final["expanded"] == [["gitq", "given in the question"]]
+
+
+def test_abbreviations_endpoint_rejects_invalid_short_forms(client):
+    response = client.post("/api/abbreviations", json={"short": "two words", "expansion": "x"})
+    assert response.status_code == 400
 
 
 def test_transcribe_reports_model_errors_in_the_stream(client, monkeypatch):

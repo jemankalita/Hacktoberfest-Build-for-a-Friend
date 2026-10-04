@@ -1,8 +1,13 @@
+import pytest
+
 from handnotes.memory import (
+    add_abbreviation,
     apply_known_fixes,
     build_prompt_hints,
+    diff_abbreviations,
     diff_words,
     empty_memory,
+    expand_abbreviations,
     learn,
     word_accuracy,
 )
@@ -82,6 +87,43 @@ def test_apply_known_fixes_never_touches_short_words():
 
 def test_build_prompt_hints_is_empty_for_new_memory():
     assert build_prompt_hints(empty_memory()) == ""
+
+
+def test_diff_abbreviations_finds_single_and_multi_word_short_forms():
+    pairs = diff_abbreviations("acc: to the text, as gitq", "according to the text, as given in the question")
+    assert pairs == [("acc", "according"), ("gitq", "given in the question")]
+
+
+def test_diff_abbreviations_ignores_ordinary_misreads():
+    assert diff_abbreviations("in his class, Possam said", "in her class, Possum said") == []
+
+
+def test_learn_records_short_forms_separately_from_misreads():
+    memory = learn(empty_memory(), "acc to Possum", "according to Possum", NOW)
+    assert memory["abbreviations"] == {"acc": "according"}
+    assert memory["corrections"] == {}
+
+
+def test_expand_abbreviations_replaces_whole_words_and_reports_them():
+    memory = add_abbreviation(empty_memory(), "gitq", "given in the question")
+    memory = add_abbreviation(memory, "acc", "according")
+    text, expanded = expand_abbreviations("Acc: the author, as gitq. Accent stays.", memory)
+    assert text == "according the author, as given in the question. Accent stays."
+    assert expanded == [["gitq", "given in the question"], ["acc", "according"]]
+
+
+def test_add_abbreviation_validates_and_does_not_mutate():
+    original = empty_memory()
+    updated = add_abbreviation(original, " Wrt ", "with respect to")
+    assert original["abbreviations"] == {}
+    assert updated["abbreviations"] == {"wrt": "with respect to"}
+    with pytest.raises(ValueError):
+        add_abbreviation(original, "two words", "x")
+
+
+def test_build_prompt_hints_mentions_short_forms():
+    memory = add_abbreviation(empty_memory(), "gitq", "given in the question")
+    assert "gitq" in build_prompt_hints(memory)
 
 
 def test_build_prompt_hints_lists_vocabulary_and_misreads():

@@ -345,6 +345,9 @@ kbd { font-family: var(--mono); font-size: 12px; padding: 1px 6px; border: 1px s
 .kpi .label { font-size: 12px; color: var(--muted); }
 .delta-up { color: var(--good); font-size: 13px; font-weight: 600; }
 
+.short-form-add { display: grid; grid-template-columns: 0.7fr 1.3fr auto; gap: 6px; margin: 12px 0 6px; }
+.short-form-add .field { min-width: 0; padding: 7px 10px; border-radius: var(--radius-sm); font-size: 14px; }
+.chip .short { font-family: var(--mono); font-weight: 500; }
 .lower-grid { display: grid; grid-template-columns: minmax(280px, 1fr) minmax(0, 2.2fr); gap: 18px; margin: 0 clamp(12px, 2vw, 24px) 18px; align-items: start; }
 .lower-grid:not(:has(> :not([hidden]))) { display: none; }
 @media (max-width: 900px) { .lower-grid { grid-template-columns: 1fr; } }

@@ -106,7 +106,7 @@ function addFiles(fileList) {
 
   const newPages = images.map((file) => ({
     id: nextPageId++, file, name: file.name, url: URL.createObjectURL(file), status: "queued",
-    streamText: "", modelText: "", corrected: "", autoFixes: [], learned: null,
+    streamText: "", modelText: "", corrected: "", autoFixes: [], expanded: [], learned: null,
     plainText: null, comparing: false, error: "", startedAt: 0,
   }));
   setState({ pages: [...state.pages, ...newPages], currentId: state.currentId ?? newPages[0].id });
@@ -134,7 +134,10 @@ async function readPage(id) {
       updatePage(id, { streamText: findPage(id).streamText + token });
       if (state.currentId === id) paintStream(findPage(id));
     });
-    updatePage(id, { status: "review", modelText: final.text, corrected: final.text, autoFixes: final.auto_fixes });
+    updatePage(id, {
+      status: "review", modelText: final.text, corrected: final.text,
+      autoFixes: final.auto_fixes, expanded: final.expanded || [],
+    });
   } catch (error) {
     updatePage(id, { status: "error", error: error.message });
   } finally {
@@ -271,6 +274,15 @@ function autoFixHtml(page) {
   return `<div class="notice info"><b>Fixed from his memory:</b> <span class="chips">${page.autoFixes.map((pair) => pairChip(pair)).join("")}</span></div>`;
 }
 
+function shortFormChip([short, meaning]) {
+  return `<span class="chip"><span class="short">${escapeHtml(short)}</span>→<span class="right">${escapeHtml(meaning)}</span></span>`;
+}
+
+function expandedHtml(page) {
+  if (!page.expanded.length) return "";
+  return `<div class="notice info"><b>Expanded his short forms:</b> <span class="chips">${page.expanded.map(shortFormChip).join("")}</span></div>`;
+}
+
 function learnedHtml(page) {
   if (!page.learned) return "";
   const pairs = page.learned.pairs.length
@@ -304,7 +316,7 @@ function reviewHtml(page) {
       <span class="eyebrow">Transcription</span>
       <span class="pill"><span class="dot ${learned ? "ok" : ""}"></span>${learned ? "Saved to memory" : "Check and correct"}</span>
     </div>
-    ${learnedHtml(page)}${autoFixHtml(page)}
+    ${learnedHtml(page)}${autoFixHtml(page)}${expandedHtml(page)}
     <div id="unsure">${unsureHtml(page.corrected)}</div>
     <label class="sr-only" for="edit-text">Transcription</label>
     <textarea class="edit" id="edit-text" spellcheck="true">${escapeHtml(page.corrected)}</textarea>
@@ -421,6 +433,27 @@ function renderInsights() {
     : '<p class="muted" style="font-size:14px">Misreads you correct will collect here.</p>';
   renderModelCard(memory.personal_model);
   renderLibraryCard(memory.samples);
+  const shortForms = Object.entries(memory.abbreviations || {});
+  $("#short-forms").innerHTML = shortForms.length
+    ? shortForms.map(shortFormChip).join("")
+    : '<p class="muted" style="font-size:14px">None yet. Add his shorthand, like acc → according.</p>';
+}
+
+async function addShortForm(event) {
+  event.preventDefault();
+  const shortInput = $("#short-input");
+  const meaningInput = $("#meaning-input");
+  try {
+    const response = await postJson("/api/abbreviations", { short: shortInput.value, expansion: meaningInput.value });
+    setState({ memory: await response.json() });
+    renderInsights();
+    toast(`Learned: ${shortInput.value.trim()} → ${meaningInput.value.trim()}`);
+    shortInput.value = "";
+    meaningInput.value = "";
+    shortInput.focus();
+  } catch (error) {
+    toast(error.message, "bad");
+  }
 }
 
 function renderAll() { renderPages(); renderEditor(); renderInsights(); }
@@ -615,6 +648,7 @@ function init() {
   bindDropzone();
   bindTabs();
   bindStudyTools();
+  $("#short-form-add").addEventListener("submit", addShortForm);
   const editor = $("#editor");
   editor.addEventListener("click", onEditorClick);
   editor.addEventListener("input", onEditorInput);

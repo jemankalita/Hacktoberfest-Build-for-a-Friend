@@ -19,9 +19,11 @@ from pydantic import BaseModel, Field
 from handnotes import ocr
 from handnotes.exporters import to_docx, to_pdf
 from handnotes.memory import (
+    add_abbreviation,
     apply_known_fixes,
     build_prompt_hints,
     diff_words,
+    expand_abbreviations,
     learn,
     load_memory,
     save_memory,
@@ -47,6 +49,11 @@ class LearnRequest(BaseModel):
     corrected: str = Field(min_length=1, max_length=MAX_TEXT_CHARS)
 
 
+class AbbreviationRequest(BaseModel):
+    short: str = Field(min_length=1, max_length=20)
+    expansion: str = Field(min_length=1, max_length=120)
+
+
 class TextRequest(BaseModel):
     text: str = Field(min_length=1, max_length=MAX_TEXT_CHARS)
 
@@ -63,6 +70,7 @@ def _memory_view(memory: dict) -> dict:
         "history": memory["history"],
         "vocabulary_count": len(memory["vocabulary"]),
         "top_misreads": misreads[:TOP_MISREADS_SHOWN],
+        "abbreviations": memory.get("abbreviations", {}),
         "samples": memory.get("samples"),
         "personal_model": memory.get("personal_model"),
     }
@@ -90,8 +98,12 @@ def _transcribe_events(image_bytes: bytes, memory: dict, use_memory: bool) -> It
         yield _event(error=str(error))
         return
     raw = "".join(parts).strip()
-    text = apply_known_fixes(raw, memory) if use_memory else raw
-    yield _event(done=True, text=text, auto_fixes=diff_words(raw, text))
+    if not use_memory:
+        yield _event(done=True, text=raw, auto_fixes=[], expanded=[])
+        return
+    fixed = apply_known_fixes(raw, memory)
+    text, expanded = expand_abbreviations(fixed, memory)
+    yield _event(done=True, text=text, auto_fixes=diff_words(raw, fixed), expanded=expanded)
 
 
 @app.get("/", include_in_schema=False)
@@ -141,6 +153,18 @@ def api_learn(request: LearnRequest) -> dict:
         "pairs": diff_words(request.model_text, request.corrected),
         "memory": _memory_view(updated),
     }
+
+
+@app.post("/api/abbreviations")
+def api_add_abbreviation(request: AbbreviationRequest) -> dict:
+    with _memory_lock:
+        memory = _load_memory_or_500()
+        try:
+            updated = add_abbreviation(memory, request.short, request.expansion)
+        except ValueError as error:
+            raise HTTPException(status_code=400, detail=str(error)) from error
+        save_memory(MEMORY_PATH, updated)
+    return _memory_view(updated)
 
 
 @app.post("/api/summarize")

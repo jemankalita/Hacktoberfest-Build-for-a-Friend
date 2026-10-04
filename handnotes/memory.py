@@ -16,13 +16,14 @@ MIN_LEARNABLE_LENGTH = 4
 AUTO_FIX_MIN_COUNT = 2
 MAX_HINT_WORDS = 60
 MAX_HINT_MISREADS = 30
+MAX_SHORT_FORM_LENGTH = 6
 _PUNCTUATION = ".,;:!?\"'()[]"
 # Typographic quotes are not misreads: "student’s" and "student's" are the same word.
 _QUOTE_TABLE = str.maketrans({"’": "'", "‘": "'", "“": '"', "”": '"'})
 
 
 def empty_memory() -> dict:
-    return {"vocabulary": [], "corrections": {}, "history": []}
+    return {"vocabulary": [], "corrections": {}, "abbreviations": {}, "history": []}
 
 
 def _clean_words(text: str) -> list[str]:
@@ -47,6 +48,53 @@ def diff_words(model_text: str, corrected_text: str) -> list[tuple[str, str]]:
     return pairs
 
 
+def is_short_form(short: str, expansion: str) -> bool:
+    """True for shorthand like acc→according or gitq→given in the question:
+    same first letter, shorter, and its letters appear in order in the expansion."""
+    short, expansion = short.lower(), expansion.lower()
+    letters = expansion.replace(" ", "")
+    if not short or len(short) > MAX_SHORT_FORM_LENGTH or len(short) >= len(letters):
+        return False
+    if short[0] != letters[0]:
+        return False
+    remaining = iter(letters)
+    return all(char in remaining for char in short)
+
+
+def diff_abbreviations(model_text: str, corrected_text: str) -> list[tuple[str, str]]:
+    """Short forms the user expanded: one model word replaced by its longer meaning."""
+    model = _clean_words(model_text)
+    fixed = _clean_words(corrected_text)
+    matcher = SequenceMatcher(a=model, b=fixed, autojunk=False)
+    pairs = []
+    for tag, i1, i2, j1, j2 in matcher.get_opcodes():
+        if tag == "replace" and i2 - i1 == 1:
+            expansion = " ".join(fixed[j1:j2])
+            if is_short_form(model[i1], expansion):
+                pairs.append((model[i1], expansion))
+    return pairs
+
+
+def add_abbreviation(memory: dict, short: str, expansion: str) -> dict:
+    """Return a new memory with a short form the user taught it directly."""
+    short, expansion = short.strip().lower().rstrip(":."), " ".join(expansion.split())
+    if not short or not expansion or " " in short:
+        raise ValueError("A short form is one word, and its meaning can't be empty.")
+    return {**memory, "abbreviations": {**memory.get("abbreviations", {}), short: expansion}}
+
+
+def expand_abbreviations(text: str, memory: dict) -> tuple[str, list[list[str]]]:
+    """Expand his known short forms (whole words; a trailing ':' as in "acc:" is absorbed,
+    a trailing '.' is kept because it usually ends the sentence)."""
+    expanded = []
+    for short, expansion in memory.get("abbreviations", {}).items():
+        pattern = re.compile(rf"(?<!\w){re.escape(short)}:?(?!\w)", re.IGNORECASE)
+        if pattern.search(text):
+            text = pattern.sub(expansion, text)
+            expanded.append([short, expansion])
+    return text, expanded
+
+
 def _matched_word_count(model_text: str, corrected_text: str) -> tuple[int, int]:
     model = [word.lower() for word in _clean_words(model_text)]
     fixed = [word.lower() for word in _clean_words(corrected_text)]
@@ -64,8 +112,15 @@ def learn(memory: dict, model_text: str, corrected_text: str, timestamp: str) ->
     """Return a new memory that includes this page's corrections and accuracy."""
     corrections = {key: dict(entry) for key, entry in memory["corrections"].items()}
     vocabulary = list(memory["vocabulary"])
+    short_forms = diff_abbreviations(model_text, corrected_text)
+    abbreviations = {
+        **memory.get("abbreviations", {}),
+        **{short.lower(): expansion for short, expansion in short_forms},
+    }
 
     for wrong, right in diff_words(model_text, corrected_text):
+        if (wrong, right) in short_forms:
+            continue
         key = f"{wrong.lower()}→{right.lower()}"
         previous = corrections.get(key, {"wrong": wrong, "right": right, "count": 0})
         corrections[key] = {**previous, "count": previous["count"] + 1}
@@ -80,8 +135,10 @@ def learn(memory: dict, model_text: str, corrected_text: str, timestamp: str) ->
         "errors": total - matched,
     }
     return {
+        **memory,
         "vocabulary": vocabulary,
         "corrections": corrections,
+        "abbreviations": abbreviations,
         "history": [*memory["history"], session],
     }
 
@@ -106,10 +163,14 @@ def build_prompt_hints(memory: dict) -> str:
         key=lambda entry: entry["count"],
         reverse=True,
     )[:MAX_HINT_MISREADS]
-    if not vocabulary and not misreads:
+    abbreviations = memory.get("abbreviations", {})
+    if not vocabulary and not misreads and not abbreviations:
         return ""
 
     lines = ["This writer's notes have been corrected before. Use what was learned:"]
+    if abbreviations:
+        forms = ", ".join(f"{short} ({meaning})" for short, meaning in abbreviations.items())
+        lines.append("Short forms they use; copy them exactly as written: " + forms)
     if vocabulary:
         lines.append("Words and names that appear in their notes: " + ", ".join(vocabulary))
     if misreads:

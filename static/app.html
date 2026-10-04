@@ -47,6 +47,18 @@
         <div class="panel-title"><h2>His usual misreads</h2></div>
         <div class="chips" id="misreads"></div>
       </section>
+      <section class="card card-pad">
+        <div class="panel-title"><h2>His short forms</h2></div>
+        <div class="chips" id="short-forms"></div>
+        <form class="short-form-add" id="short-form-add">
+          <label class="sr-only" for="short-input">Short form</label>
+          <input class="field" id="short-input" placeholder="acc" maxlength="20" required>
+          <label class="sr-only" for="meaning-input">Meaning</label>
+          <input class="field" id="meaning-input" placeholder="according" maxlength="120" required>
+          <button class="btn btn-ghost btn-sm" type="submit">Add</button>
+        </form>
+        <p class="hint">Also learned automatically when you expand one while correcting.</p>
+      </section>
     </aside>
   </div>
 

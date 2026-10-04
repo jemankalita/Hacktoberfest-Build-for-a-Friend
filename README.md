@@ -2,19 +2,32 @@
 
 **A handwriting reader that learns one person's handwriting, running entirely on your own laptop.**
 
+![Gemma 3](https://img.shields.io/badge/Gemma_3-4285F4?style=for-the-badge&logo=google&logoColor=white)
+![Ollama](https://img.shields.io/badge/Ollama-000000?style=for-the-badge&logo=ollama&logoColor=white)
+![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)
+![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white)
+![HTML5](https://img.shields.io/badge/HTML5-E34F26?style=for-the-badge&logo=html5&logoColor=white)
+![CSS](https://img.shields.io/badge/CSS-663399?style=for-the-badge&logo=css&logoColor=white)
+![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black)
+![pytest](https://img.shields.io/badge/pytest-0A9EDC?style=for-the-badge&logo=pytest&logoColor=white)
+![License: MIT](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)
+
 My friend writes down everything in class, then photographs his notes the night before an exam and asks an AI chatbot to summarize them. It can't read his handwriting. And when a model *does* read most of it, the mistakes look right: in our first test a book title turned into a different word, "his" became "her", and a date quietly disappeared.
 
 HandNotes reads his notes with an open vision model (Gemma 3 via Ollama) on his own machine, lets you fix what it got wrong, and remembers those fixes so the next page comes out better. Nothing is uploaded anywhere.
 
 Built for the [DEV Hacktoberfest Weekend Challenge: Build for a Friend](https://dev.to/challenges/hacktoberfest-weekend-2026-10-01).
 
-![Live reading in the HandNotes workspace](docs/screenshots/live-reading.png)
+![HandNotes reading a real page of his notes, shown at 4x speed](docs/demo.gif)
+
+*Real run at 4x speed: adding his short forms, reading a page live, comparing with the plain model, and making flashcards.*
 
 ## Features
 
 - **Live reading**: text streams in word by word as the local model reads the page.
 - **Unsure-word highlights**: words the model isn't confident about are marked, and one click jumps to each one in the editor.
 - **Correction memory**: every fix is diffed against the model's output and stored. His vocabulary and past misreads are fed into the prompt for the next page, and a misread confirmed twice is corrected automatically.
+- **His short forms**: he writes "acc" for *according* and "gitq" for *given in the question*. Teach a short form once, by adding it or by expanding it while correcting, and it's expanded automatically on every page after that.
 - **Accuracy tracking**: each saved page records word accuracy, plotted page by page.
 - **Before / after**: re-read a page with the plain model and see, word by word, what his memory changed.
 - **Whole chapters**: drop or paste several photos; they're read in order.
@@ -29,6 +42,7 @@ HandNotes doesn't retrain a model. It keeps a small per-writer memory (`memory.j
 2. You correct the transcript and save.
 3. `handnotes/memory.py` diffs the model output against your fix, word by word, and records each misread (`"Peripheral" → "Perennial"`), the words he uses, and the page's accuracy.
 4. On the next page, the learned words and misreads are added to the prompt, and misreads confirmed at least twice are replaced automatically. Short, context-dependent words like *his/her* are never auto-replaced.
+5. Short forms are detected separately: when one short word is replaced by a longer phrase that starts with the same letter and contains its letters in order (`gitq` → `given in the question`), it's stored as his shorthand and expanded after every read.
 
 ```mermaid
 flowchart LR
@@ -103,7 +117,7 @@ On a laptop with a GTX 1650 Ti (4 GB), a page takes about 30–40 seconds, with 
 python -m pytest
 ```
 
-29 tests cover the correction memory, the API (with the model mocked), flashcard parsing and the exporters.
+37 tests cover the correction memory, short forms, the API (with the model mocked), flashcard parsing and the exporters.
 
 ## Project structure
 
