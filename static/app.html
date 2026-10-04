@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>HandNotes Workspace</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%231b2238'/><path d='M8 12.5c1.6-3 3.2-3 4.2 0s2.6 3 4.2 0 2.6-3 4.2 0 1.8 2 3.4.8' fill='none' stroke='%239fb0ff' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/><path d='M8 19h16M8 24h10' fill='none' stroke='white' stroke-width='2.2' stroke-linecap='round'/></svg>">
+  <link rel="stylesheet" href="/static/styles.css">
+  <script src="/static/theme.js"></script>
+</head>
+<body>
+  <nav class="nav" aria-label="Main">
+    <a class="brand" href="/" aria-label="HandNotes home">
+      <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true">
+        <rect width="32" height="32" rx="8" fill="#1b2238"/>
+        <path d="M8 12.5c1.6-3 3.2-3 4.2 0s2.6 3 4.2 0 2.6-3 4.2 0 1.8 2 3.4.8" fill="none" stroke="#9fb0ff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M8 19h16M8 24h10" fill="none" stroke="#ffffff" stroke-width="2.2" stroke-linecap="round"/>
+      </svg>
+      <span>Hand<span class="serif">Notes</span></span>
+    </a>
+    <span class="nav-spacer"></span>
+    <span class="pill" id="status" role="status"><span class="dot"></span>Checking the model…</span>
+    <button class="icon-btn" data-theme-toggle aria-label="Toggle dark mode">◐</button>
+  </nav>
+
+  <div class="workspace">
+    <aside class="card card-pad" aria-label="Pages">
+      <div class="panel-title"><h2>Pages</h2><span class="muted" id="page-count" style="font-size:13px"></span></div>
+      <label class="dropzone" id="dropzone">
+        <img class="emoji" src="/static/emoji/camera.png" alt="">
+        <b>Add note photos</b>
+        <span>Drop images here or click. Several at once is fine.</span>
+        <input type="file" id="file-input" accept="image/jpeg,image/png,image/webp" multiple class="sr-only">
+      </label>
+      <ul class="page-list" id="page-list"></ul>
+    </aside>
+
+    <main id="editor" aria-live="polite"></main>
+
+    <aside class="insights" aria-label="What it has learned">
+      <section class="card card-pad chart">
+        <div class="panel-title"><h2>Accuracy</h2><span class="muted" style="font-size:13px">per corrected page</span></div>
+        <div id="chart"></div>
+        <div class="kpis" id="kpis"></div>
+      </section>
+      <section class="card card-pad">
+        <div class="panel-title"><h2>His usual misreads</h2></div>
+        <div class="chips" id="misreads"></div>
+      </section>
+    </aside>
+  </div>
+
+  <div class="lower-grid">
+    <section class="card card-pad" id="model-card" hidden></section>
+    <section class="card card-pad" id="library-card" hidden></section>
+  </div>
+
+  <section class="study card card-pad" aria-label="Study tools">
+    <div class="panel-title">
+      <h2>Study tools</h2>
+      <div class="tabs" role="tablist">
+        <button class="tab" role="tab" aria-selected="true" data-tab="summary">Summary</button>
+        <button class="tab" role="tab" aria-selected="false" data-tab="cards">Flashcards</button>
+        <button class="tab" role="tab" aria-selected="false" data-tab="export">Export</button>
+      </div>
+    </div>
+    <p class="hint">Uses every page you've read so far.</p>
+
+    <div class="tab-panel" data-panel="summary">
+      <button class="btn btn-primary btn-sm" id="summary-btn">Summarize for revision</button>
+      <div class="summary-body" id="summary" style="margin-top:16px"></div>
+    </div>
+
+    <div class="tab-panel" data-panel="cards" hidden>
+      <button class="btn btn-primary btn-sm" id="cards-btn">Make flashcards</button>
+      <div class="cards-grid" id="cards" style="margin-top:16px"></div>
+    </div>
+
+    <div class="tab-panel" data-panel="export" hidden>
+      <div class="export-row">
+        <label class="sr-only" for="export-title">File name</label>
+        <input class="field" id="export-title" value="My notes" maxlength="60">
+        <label class="check"><input type="checkbox" id="export-summary" checked> Include summary</label>
+        <button class="btn btn-primary btn-sm" data-export="pdf">PDF</button>
+        <button class="btn btn-ghost btn-sm" data-export="docx">Word</button>
+        <button class="btn btn-ghost btn-sm" data-export="txt">Text</button>
+      </div>
+    </div>
+  </section>
+
+  <div class="toast-host" id="toasts" aria-live="assertive"></div>
+  <script src="/static/app.js"></script>
+</body>
+</html>

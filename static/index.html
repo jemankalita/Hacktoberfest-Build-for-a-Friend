@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>HandNotes</title>
+  <meta name="description" content="A handwriting reader that learns one person's handwriting, powered by an open model running on your own laptop.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%231b2238'/><path d='M8 12.5c1.6-3 3.2-3 4.2 0s2.6 3 4.2 0 2.6-3 4.2 0 1.8 2 3.4.8' fill='none' stroke='%239fb0ff' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/><path d='M8 19h16M8 24h10' fill='none' stroke='white' stroke-width='2.2' stroke-linecap='round'/></svg>">
+  <link rel="preload" href="/static/fonts/instrument-serif-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/static/fonts/geist-sans-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/static/styles.css">
+  <script src="/static/theme.js"></script>
+</head>
+<body>
+  <nav class="nav" aria-label="Main">
+    <a class="brand" href="/" aria-label="HandNotes home">
+      <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true">
+        <rect width="32" height="32" rx="8" fill="#1b2238"/>
+        <path d="M8 12.5c1.6-3 3.2-3 4.2 0s2.6 3 4.2 0 2.6-3 4.2 0 1.8 2 3.4.8" fill="none" stroke="#9fb0ff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M8 19h16M8 24h10" fill="none" stroke="#ffffff" stroke-width="2.2" stroke-linecap="round"/>
+      </svg>
+      <span>Hand<span class="serif">Notes</span></span>
+    </a>
+    <div class="nav-links">
+      <a href="#problem">The problem</a>
+      <a href="#how">How it learns</a>
+      <a href="#open">Why open</a>
+      <button class="icon-btn" data-theme-toggle aria-label="Toggle dark mode">◐</button>
+      <a class="btn btn-primary btn-sm" href="/app">Open HandNotes</a>
+    </div>
+  </nav>
+
+  <header class="hero">
+    <div class="container hero-grid">
+      <div>
+        <span class="pill"><span class="dot ok"></span>Built for one friend · Runs entirely on a laptop</span>
+        <h1>Notes only <em>he</em> could read.<br>Until now.</h1>
+        <p class="lead">HandNotes reads one person's handwriting with an open AI model on your own machine, and gets better every time you correct it.</p>
+        <div class="hero-actions">
+          <a class="btn btn-primary btn-lg" href="/app">Read a page →</a>
+          <a class="btn btn-ghost btn-lg" href="#how">How it learns</a>
+        </div>
+        <div class="hero-meta">
+          <span>Gemma 3 via Ollama</span><span>·</span><span>No cloud, no account</span><span>·</span><span>Works offline</span>
+        </div>
+      </div>
+
+      <div class="demo" aria-label="Example: a handwritten note and its transcription">
+        <div class="note-paper" aria-hidden="true">
+          The Perennial Student by<br>
+          William H. Coles is a<br>
+          satirical short story <span class="scribble">abt</span><br>
+          about Associate Professor<br>
+          William Possum and his…
+        </div>
+        <div class="card transcript-card">
+          <div class="t-head">
+            <span class="eyebrow">Transcription</span>
+            <span class="pill"><span class="dot busy"></span>reading locally</span>
+          </div>
+          <p>The Perennial Student by William H. Coles is a satirical short story about Associate Professor William Possum and his <mark>troubled</mark> relationship…<span class="caret"></span></p>
+          <div class="learned-row">
+            Learned from his corrections:
+            <span class="chip"><span class="wrong">Peripheral</span>→<span class="right">Perennial</span></span>
+            <span class="chip"><span class="wrong">spatialical</span>→<span class="right">satirical</span></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <section class="section" id="problem">
+    <div class="container story">
+      <div class="story-text">
+        <span class="eyebrow">The problem</span>
+        <h2 style="font-size:clamp(36px,4.6vw,56px);margin:12px 0 20px">He writes everything down. Nobody can read it.</h2>
+        <p>My friend takes notes in every single class. Then, the night before an exam, he photographs them and asks an AI chatbot to summarize them. <strong>It can't read his handwriting.</strong></p>
+        <p>Worse, when an AI does read most of it, the mistakes <strong>look right</strong>. In our first test, a book title became a different word, "his" became "her", and an exam-relevant date simply disappeared. A tired student would never notice.</p>
+        <p>A general-purpose chatbot can't be taught one person's handwriting. A small open model on his own laptop, with a memory of his corrections, can.</p>
+      </div>
+      <div class="misread-list" aria-label="Real misreads from the first test">
+        <div class="card misread"><span class="wrote">Perennial</span><span class="read">Peripheral</span></div>
+        <div class="card misread"><span class="wrote">satirical</span><span class="read">spatialical</span></div>
+        <div class="card misread"><span class="wrote">role-based agents</span><span class="read">multi-based agents</span></div>
+        <div class="card misread"><span class="wrote">his reputation</span><span class="read">her reputation</span></div>
+        <div class="card misread"><span class="wrote">17 September, 5–7 pm</span><span class="read">(date dropped), 5–6 pm</span></div>
+        <p class="muted" style="font-size:13px">Left: what he wrote. Right: what the plain model read in our first test.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section-alt" id="how">
+    <div class="container">
+      <div class="section-head">
+        <span class="eyebrow">How it learns</span>
+        <h2>Correct it a few times. It remembers.</h2>
+        <p>No retraining, no GPU farm. Every fix you make becomes memory that shapes how the next page is read.</p>
+      </div>
+      <div class="steps">
+        <article class="card step">
+          <img class="emoji" src="/static/emoji/camera.png" alt="">
+          <h3>Snap a page</h3>
+          <p>Drop in photos of his notes. An open vision model reads them on your laptop, and you watch the text appear live.</p>
+        </article>
+        <article class="card step">
+          <img class="emoji" src="/static/emoji/pencil.png" alt="">
+          <h3>Fix what it missed</h3>
+          <p>Words it wasn't sure about are highlighted, so checking a page takes a minute, not twenty.</p>
+        </article>
+        <article class="card step">
+          <img class="emoji" src="/static/emoji/brain.png" alt="">
+          <h3>It remembers</h3>
+          <p>His names, terms and usual misreads are fed into the next page. A misread fixed twice is corrected automatically from then on.</p>
+        </article>
+      </div>
+      <div class="card stats-strip">
+        <div class="stat"><div class="value">8</div><div class="label">pages learned from</div></div>
+        <div class="stat"><div class="value">97%</div><div class="label">accuracy on the latest page</div></div>
+        <div class="stat"><div class="value">1,284</div><div class="label">of his handwritten words stored</div></div>
+        <div class="stat"><div class="value">0 KB</div><div class="label">uploaded to the cloud</div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="handwriting">
+    <div class="container">
+      <div class="section-head">
+        <span class="eyebrow">Under the hood</span>
+        <h2>It learns his handwriting, not just his words.</h2>
+        <p>Corrections teach it what he meant. His word library and personal model teach it how he writes.</p>
+      </div>
+      <div class="steps">
+        <article class="card step">
+          <img class="emoji" src="/static/emoji/books.png" alt="">
+          <h3>A library of his handwriting</h3>
+          <p>Every corrected word is located on the page, cut out as an image and stored with its correct label, building a dataset of exactly how he shapes each letter.</p>
+        </article>
+        <article class="card step">
+          <img class="emoji" src="/static/emoji/brain.png" alt="">
+          <h3>A personal model, trained locally</h3>
+          <p>His word library is used to fine-tune a personal version of the open model right on the laptop, so it reads his "w" and "u" the way he means them.</p>
+        </article>
+        <article class="card step">
+          <img class="emoji" src="/static/emoji/repeat.png" alt="">
+          <h3>Knows his slips from its mistakes</h3>
+          <p>Before saving, each change is marked as a misread to learn or a slip in his notes to skip, and real words he uses are flagged for review instead of silently replaced.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="open">
+    <div class="container">
+      <div class="section-head">
+        <span class="eyebrow">Why open matters</span>
+        <h2>His notes. His laptop. His model.</h2>
+        <p>Every piece that makes HandNotes work is open: the Gemma model, the Ollama runtime, and this code.</p>
+      </div>
+      <div class="why-grid">
+        <article class="card why"><img class="emoji" src="/static/emoji/lock.png" alt=""><h3>Private</h3><p>Photos of his notes never leave the laptop. No uploads, no account, no one else's server.</p></article>
+        <article class="card why"><img class="emoji" src="/static/emoji/offline.png" alt=""><h3>Offline</h3><p>Works in a hostel room with bad Wi-Fi the night before an exam. Even the fonts are bundled.</p></article>
+        <article class="card why"><img class="emoji" src="/static/emoji/coin.png" alt=""><h3>Free to run</h3><p>No subscription and no API bill, so a lazy student will actually keep using it.</p></article>
+        <article class="card why"><img class="emoji" src="/static/emoji/wrench.png" alt=""><h3>Yours to change</h3><p>Swap the model with one setting, tweak the prompt, or fine-tune on the corrections later.</p></article>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section-alt">
+    <div class="container">
+      <div class="section-head">
+        <span class="eyebrow">Everything in the box</span>
+        <h2>From messy page to revision notes.</h2>
+      </div>
+      <div class="features">
+        <div class="card feature"><img class="emoji-sm" src="/static/emoji/bolt.png" alt=""><div><b>Live reading</b><span>Text streams in as the model reads.</span></div></div>
+        <div class="card feature"><img class="emoji-sm" src="/static/emoji/crayon.png" alt=""><div><b>Unsure-word highlights</b><span>Jump straight to the words to check.</span></div></div>
+        <div class="card feature"><img class="emoji-sm" src="/static/emoji/repeat.png" alt=""><div><b>Before / after</b><span>Compare the plain model with his memory.</span></div></div>
+        <div class="card feature"><img class="emoji-sm" src="/static/emoji/books.png" alt=""><div><b>Whole chapters</b><span>Drop in many pages, read in order.</span></div></div>
+        <div class="card feature"><img class="emoji-sm" src="/static/emoji/memo.png" alt=""><div><b>Revision summary</b><span>Key points plus likely exam questions.</span></div></div>
+        <div class="card feature"><img class="emoji-sm" src="/static/emoji/cards.png" alt=""><div><b>Flashcards</b><span>Flip-to-reveal cards from his own notes.</span></div></div>
+        <div class="card feature"><img class="emoji-sm" src="/static/emoji/page.png" alt=""><div><b>PDF, DOCX, TXT</b><span>Clean, typed notes to share or print.</span></div></div>
+        <div class="card feature"><img class="emoji-sm" src="/static/emoji/chart.png" alt=""><div><b>Accuracy tracking</b><span>See it improve, page after page.</span></div></div>
+        <div class="card feature"><img class="emoji-sm" src="/static/emoji/moon.png" alt=""><div><b>Light & dark</b><span>For 2 AM revision sessions.</span></div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="cta-band">
+    <h2>Give it his worst page.</h2>
+    <p>Correct it once. Then give it another. Watch the accuracy climb.</p>
+    <a class="btn btn-primary btn-lg" href="/app">Open HandNotes →</a>
+  </section>
+
+  <footer class="footer">
+    <div class="container">
+      <span>HandNotes · built for a friend for the DEV Hacktoberfest Weekend Challenge</span>
+      <span>Gemma 3 · Ollama · FastAPI · Emoji: Microsoft Fluent (MIT)</span>
+    </div>
+  </footer>
+</body>
+</html>
