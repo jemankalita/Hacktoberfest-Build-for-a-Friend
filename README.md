@@ -8,6 +8,8 @@ HandNotes reads his notes with an open vision model (Gemma 3 via Ollama) on his 
 
 Built for the [DEV Hacktoberfest Weekend Challenge: Build for a Friend](https://dev.to/challenges/hacktoberfest-weekend-2026-10-01).
 
+![Live reading in the HandNotes workspace](docs/screenshots/live-reading.png)
+
 ## Features
 
 - **Live reading**: text streams in word by word as the local model reads the page.
@@ -38,6 +40,29 @@ flowchart LR
     D -->|word diff| M
     D --> E[Summary · Flashcards · PDF/DOCX]
 ```
+
+## Results on his real notes
+
+Four of his pages, read in order with the memory building up, each scored against a transcript checked word by word. Pages 2–4 were also read by the plain model (no memory) for comparison.
+
+| Page | With memory | Plain model |
+|---|---|---|
+| 1. Literature assessment | 94.1% | (no memory yet) |
+| 2. Research overview | 95.5% | 95.5% |
+| 3. Formal letter | 96.0% | 95.2% |
+| 4. Literature assessment | 90.1% | 91.9% |
+
+What that taught me:
+
+- **The memory fixes names and terms.** Re-reading page 1 with memory, "Peripheral" became "Perennial" and "spatialical" became "satirical".
+- **It can also learn the wrong lesson.** He spells "behavior" on one page and "behaviour" on another, so a fix learned on one page made the next one worse, and the memory turned "Coles" into "Cole". Telling his inconsistencies apart from the model's mistakes is the next problem to solve.
+- **Pronouns are the stubborn error.** The model keeps turning "his" into "her" despite being told to copy literally.
+- **Errors travel.** A word the model invented ("distressed") flowed straight into the generated summary, which is why the review step comes before the study tools.
+
+<p>
+  <img src="docs/screenshots/compare.png" alt="Plain model vs. with his memory, word by word" width="48%">
+  <img src="docs/screenshots/accuracy-and-misreads.png" alt="Accuracy per page and his usual misreads" width="30%">
+</p>
 
 ## Why open matters
 
@@ -78,7 +103,7 @@ On a laptop with a GTX 1650 Ti (4 GB), a page takes about 30–40 seconds, with 
 python -m pytest
 ```
 
-28 tests cover the correction memory, the API (with the model mocked), flashcard parsing and the exporters.
+29 tests cover the correction memory, the API (with the model mocked), flashcard parsing and the exporters.
 
 ## Project structure
 
@@ -94,7 +119,7 @@ tests/          pytest suite
 
 ## What's next
 
-The workspace UI includes panels for these, but they are not implemented yet:
+Not implemented yet:
 
 - **Handwriting library**: locate each corrected word on the page and store the cropped image with its label.
 - **Personal model**: fine-tune a small open handwriting model (e.g. TrOCR) on that library, locally, and use it to re-read words the main model is unsure about.

@@ -16,7 +16,9 @@ MIN_LEARNABLE_LENGTH = 4
 AUTO_FIX_MIN_COUNT = 2
 MAX_HINT_WORDS = 60
 MAX_HINT_MISREADS = 30
-_PUNCTUATION = ".,;:!?\"'()[]“”‘’"
+_PUNCTUATION = ".,;:!?\"'()[]"
+# Typographic quotes are not misreads: "student’s" and "student's" are the same word.
+_QUOTE_TABLE = str.maketrans({"’": "'", "‘": "'", "“": '"', "”": '"'})
 
 
 def empty_memory() -> dict:
@@ -24,7 +26,8 @@ def empty_memory() -> dict:
 
 
 def _clean_words(text: str) -> list[str]:
-    return [word for word in (raw.strip(_PUNCTUATION) for raw in text.split()) if word]
+    words = (raw.strip(_PUNCTUATION) for raw in text.translate(_QUOTE_TABLE).split())
+    return [word for word in words if word]
 
 
 def diff_words(model_text: str, corrected_text: str) -> list[tuple[str, str]]:

@@ -20,6 +20,11 @@ def test_diff_words_ignores_trailing_punctuation():
     assert pairs == [("spatialical", "satirical")]
 
 
+def test_diff_words_treats_curly_and_straight_apostrophes_as_equal():
+    assert diff_words("other student’s work", "other student's work") == []
+    assert word_accuracy("Denise’s ‘avant-garde’", "Denise's 'avant-garde'") == 1.0
+
+
 def test_diff_words_returns_nothing_for_identical_text():
     assert diff_words("same words here", "same words here") == []
 

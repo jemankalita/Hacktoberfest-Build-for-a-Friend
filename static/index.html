@@ -114,36 +114,37 @@
         </article>
       </div>
       <div class="card stats-strip">
-        <div class="stat"><div class="value">8</div><div class="label">pages learned from</div></div>
-        <div class="stat"><div class="value">97%</div><div class="label">accuracy on the latest page</div></div>
-        <div class="stat"><div class="value">1,284</div><div class="label">of his handwritten words stored</div></div>
+        <div class="stat"><div class="value">~94%</div><div class="label">of words right on the first read</div></div>
+        <div class="stat"><div class="value">35 s</div><div class="label">per page on a 4 GB laptop GPU</div></div>
+        <div class="stat"><div class="value">4</div><div class="label">of his pages tested and hand-checked</div></div>
         <div class="stat"><div class="value">0 KB</div><div class="label">uploaded to the cloud</div></div>
       </div>
+      <p class="muted" style="font-size:13px;margin-top:10px">Measured on his real notes, against transcripts checked word by word.</p>
     </div>
   </section>
 
   <section class="section" id="handwriting">
     <div class="container">
       <div class="section-head">
-        <span class="eyebrow">Under the hood</span>
-        <h2>It learns his handwriting, not just his words.</h2>
-        <p>Corrections teach it what he meant. His word library and personal model teach it how he writes.</p>
+        <span class="eyebrow">What's next</span>
+        <h2>From learning his words to learning his handwriting.</h2>
+        <p>Today it learns from his corrections. Because every piece is open, the next steps are possible on the same laptop.</p>
       </div>
       <div class="steps">
         <article class="card step">
           <img class="emoji" src="/static/emoji/books.png" alt="">
           <h3>A library of his handwriting</h3>
-          <p>Every corrected word is located on the page, cut out as an image and stored with its correct label, building a dataset of exactly how he shapes each letter.</p>
+          <p>Locate each corrected word on the page and store the cropped image with its label: a dataset of exactly how he shapes each letter.</p>
         </article>
         <article class="card step">
           <img class="emoji" src="/static/emoji/brain.png" alt="">
-          <h3>A personal model, trained locally</h3>
-          <p>His word library is used to fine-tune a personal version of the open model right on the laptop, so it reads his "w" and "u" the way he means them.</p>
+          <h3>A personal model</h3>
+          <p>Fine-tune a small open handwriting model on that library, locally, to re-read the words the main model is unsure about.</p>
         </article>
         <article class="card step">
           <img class="emoji" src="/static/emoji/repeat.png" alt="">
-          <h3>Knows his slips from its mistakes</h3>
-          <p>Before saving, each change is marked as a misread to learn or a slip in his notes to skip, and real words he uses are flagged for review instead of silently replaced.</p>
+          <h3>His slips vs. its mistakes</h3>
+          <p>Let you mark a change as a slip in his notes, so it isn't learned as a misread, and flag real words he uses instead of replacing them.</p>
         </article>
       </div>
     </div>
